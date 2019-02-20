@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
 
@@ -15,28 +16,16 @@ class TodoListViewController: UITableViewController {
     // Url for local plist
     let datapath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
+    // Context with ref to app delegate
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(datapath)
-        /**
-         let newItem = Item()
-        newItem.title = "Fridge"
         
-        item.append(newItem)
         
-        let newItem1 = Item()
-        newItem1.title = "Business Account"
-        
-        item.append(newItem1)
-        
-        let newItem2 = Item()
-        newItem2.title = "Zoning"
-        
-        item.append(newItem2)
-        */
-        decodeData()
+        loadItems()
         
         
         // Do any additional setup after loading the view, typically from a nib.
@@ -61,14 +50,14 @@ class TodoListViewController: UITableViewController {
         return cell
     }
     
-    //MARK - Tableview Delegate Methods
+    //MARK - Tableview De   legate Methods
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         //print(self.item[indexPath.row])
         
         item[indexPath.row].done = !item[indexPath.row].done
        
-        encodeData()
+        saveItems()
         
         tableView.reloadData()
         
@@ -79,30 +68,29 @@ class TodoListViewController: UITableViewController {
     
     //Mark - Model Manipulation
     
-    func encodeData() {
-        let encoder = PropertyListEncoder()
+    func saveItems() {
         
         do {
-            let data = try encoder.encode(item)
-            try data.write(to: datapath!)
+           try context.save()
         }catch {
-            print("Error encoding item, \(error)")
+           print("Error saving context with \(error)")
         }
         
     }
     
-    func decodeData() {
-        if let data = try? Data(contentsOf: datapath!) {
-            let decoder = PropertyListDecoder()
-            do {
-            item = try decoder.decode([Item].self, from: data)
-            }catch {
-                print("Error decoding item, \(error)")
 
-            }
+    func loadItems() {
+        
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
+        do {
+            item = try context.fetch(request)
+        }catch {
+            print("Error fetching data from context \(error)")
         }
         
     }
+    
     //MARK - Add new Items +
     
     @IBAction func addItemPressed(_ sender: UIBarButtonItem) {
@@ -116,13 +104,17 @@ class TodoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add", style: .default) { (action) in
             // What happens when action pressed
             
-            let newi = Item()
+            
+            let newi = Item(context: self.context)
+            
             newi.title = textField.text!
+            
+            newi.done = false
             
             if (!textField.text!.isEmpty) {
                 self.item.append(newi)
 
-                self.encodeData()
+                self.saveData()
                 
                 self.tableView.reloadData()
             }
