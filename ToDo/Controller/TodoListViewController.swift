@@ -12,14 +12,16 @@ class TodoListViewController: UITableViewController {
 
     var item = [Item]()
     
-    let defaults = UserDefaults.standard
+    // Url for local plist
+    let datapath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let newItem = Item()
+        print(datapath)
+        /**
+         let newItem = Item()
         newItem.title = "Fridge"
         
         item.append(newItem)
@@ -33,10 +35,9 @@ class TodoListViewController: UITableViewController {
         newItem2.title = "Zoning"
         
         item.append(newItem2)
-                
-        if let ims = defaults.array(forKey: "toDoListArray") as? [Item] {
-            item = ims
-        }
+        */
+        decodeData()
+        
         
         // Do any additional setup after loading the view, typically from a nib.
     }
@@ -67,12 +68,41 @@ class TodoListViewController: UITableViewController {
         
         item[indexPath.row].done = !item[indexPath.row].done
        
+        encodeData()
+        
         tableView.reloadData()
         
         tableView.deselectRow(at: indexPath, animated: true)
         
     }
     
+    
+    //Mark - Model Manipulation
+    
+    func encodeData() {
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(item)
+            try data.write(to: datapath!)
+        }catch {
+            print("Error encoding item, \(error)")
+        }
+        
+    }
+    
+    func decodeData() {
+        if let data = try? Data(contentsOf: datapath!) {
+            let decoder = PropertyListDecoder()
+            do {
+            item = try decoder.decode([Item].self, from: data)
+            }catch {
+                print("Error decoding item, \(error)")
+
+            }
+        }
+        
+    }
     //MARK - Add new Items +
     
     @IBAction func addItemPressed(_ sender: UIBarButtonItem) {
@@ -91,7 +121,9 @@ class TodoListViewController: UITableViewController {
             
             if (!textField.text!.isEmpty) {
                 self.item.append(newi)
-                self.defaults.set(self.item, forKey: "toDoListArray")
+
+                self.encodeData()
+                
                 self.tableView.reloadData()
             }
         }
