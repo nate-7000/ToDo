@@ -114,7 +114,7 @@ class TodoListViewController: UITableViewController {
             if (!textField.text!.isEmpty) {
                 self.item.append(newi)
 
-                self.saveData()
+                self.saveItems()
                 
                 self.tableView.reloadData()
             }
