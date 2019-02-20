@@ -14,9 +14,10 @@ class TodoListViewController: UITableViewController {
     
     let defaults = UserDefaults.standard
     
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.defaults.set(self.item, forKey: "toDoListArray")
         
         let newItem = Item()
         newItem.title = "Fridge"
@@ -32,8 +33,7 @@ class TodoListViewController: UITableViewController {
         newItem2.title = "Zoning"
         
         item.append(newItem2)
-        
-        
+                
         if let ims = defaults.array(forKey: "toDoListArray") as? [Item] {
             item = ims
         }
@@ -55,7 +55,7 @@ class TodoListViewController: UITableViewController {
         
         cell.textLabel?.text = i.title
         
-        cell.accessoryType = i.done ? .checkmark : .none
+        cell.accessoryType = i.done == true ? .checkmark : .none
         
         return cell
     }
